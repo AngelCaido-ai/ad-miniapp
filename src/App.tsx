@@ -57,25 +57,30 @@ export default function App() {
   const [listingPrice, setListingPrice] = useState("");
 
   const authenticate = async () => {
-    const tg = window.Telegram?.WebApp;
-    const initData = tg?.initData ?? "";
-    if (!initData) {
-      setStatus("initData missing");
-      return;
+    try {
+      const tg = window.Telegram?.WebApp;
+      const initData = tg?.initData ?? "";
+      if (!initData) {
+        setStatus("initData missing");
+        return;
+      }
+      const res = await fetch(`${API_BASE}/auth/miniapp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ init_data: initData }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        setStatus(`Auth failed: ${res.status} ${err?.detail ?? ""}`);
+        return;
+      }
+      const data = await res.json();
+      localStorage.setItem("token", data.token);
+      setToken(data.token);
+      setStatus("Authenticated");
+    } catch (e) {
+      setStatus(`Network error: ${e instanceof Error ? e.message : String(e)}`);
     }
-    const res = await fetch(`${API_BASE}/auth/miniapp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ init_data: initData }),
-    });
-    if (!res.ok) {
-      setStatus("Auth failed");
-      return;
-    }
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-    setToken(data.token);
-    setStatus("Authenticated");
   };
 
   const apiFetch = async (path: string, options: RequestInit = {}) => {
