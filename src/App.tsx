@@ -4,8 +4,8 @@ import { Button } from "./components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { Input } from "./components/ui/input";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
-const BOT_URL = import.meta.env.VITE_BOT_URL ?? "https://t.me/build_contest_ads_bot";
+const API_BASE = import.meta.env.VITE_API_BASE || "https://gentle-memes-juggle.loca.lt";
+const BOT_URL = import.meta.env.VITE_BOT_URL || "https://t.me/build_contest_ads_bot";
 
 type Listing = {
   id: number;
