@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./com
 import { Input } from "./components/ui/input";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
-const BOT_URL = import.meta.env.VITE_BOT_URL ?? "https://t.me/";
+const BOT_URL = import.meta.env.VITE_BOT_URL ?? "https://t.me/build_contest_ads_bot";
 
 type Listing = {
   id: number;
