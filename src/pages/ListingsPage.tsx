@@ -53,20 +53,24 @@ export function ListingsPage() {
 
       <Group header="Фильтры">
         <div className="flex gap-2 px-4 py-2">
-          <Input
-            placeholder="Цена от"
-            type="text"
-            numeric
-            value={priceMin}
-            onChange={(v) => setPriceMin(v)}
-          />
-          <Input
-            placeholder="Цена до"
-            type="text"
-            numeric
-            value={priceMax}
-            onChange={(v) => setPriceMax(v)}
-          />
+          <div className="min-w-0 flex-1">
+            <Input
+              placeholder="Цена от"
+              type="text"
+              numeric
+              value={priceMin}
+              onChange={(v) => setPriceMin(v)}
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <Input
+              placeholder="Цена до"
+              type="text"
+              numeric
+              value={priceMax}
+              onChange={(v) => setPriceMax(v)}
+            />
+          </div>
         </div>
         <div className="px-4 pb-3">
           <Button text="Применить" type="secondary" onClick={refetch} />
