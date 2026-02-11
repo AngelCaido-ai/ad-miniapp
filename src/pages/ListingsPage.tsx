@@ -26,6 +26,7 @@ export function ListingsPage() {
     if (priceMin) params.set("price_min", priceMin);
     if (priceMax) params.set("price_max", priceMax);
     params.set("active", "true");
+    params.set("exclude_own", "true");
     const qs = params.toString();
     return apiFetch<Listing[]>(`/listings${qs ? `?${qs}` : ""}`);
   }, [priceMin, priceMax]);
