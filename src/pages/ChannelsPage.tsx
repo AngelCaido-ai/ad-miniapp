@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Text,
   Button,
@@ -14,6 +15,7 @@ import { EmptyState } from "../components/EmptyState";
 import type { Channel, Manager, TgAdmin } from "../types";
 
 export function ChannelsPage() {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const { user } = useAuth();
 
@@ -24,7 +26,7 @@ export function ChannelsPage() {
   const [adminsLoading, setAdminsLoading] = useState(false);
 
   const fetchChannels = useCallback(() => apiFetch<Channel[]>("/channels"), []);
-  const { data: channels, loading } = useApi(fetchChannels, []);
+  const { data: channels, loading, refetch } = useApi(fetchChannels, []);
 
   const selectedChannel = useMemo(
     () => channels?.find((ch) => ch.id === selectedChannelId) ?? null,
@@ -82,6 +84,7 @@ export function ChannelsPage() {
     try {
       await apiFetch(`/stats/channels/${channelId}/refresh`, { method: "POST" });
       showToast("Статистика обновлена", { type: "success" });
+      refetch();
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Ошибка", { type: "error" });
     }
@@ -119,6 +122,10 @@ export function ChannelsPage() {
       <Text type="title2" weight="bold">
         Мои каналы
       </Text>
+      <div className="flex gap-2">
+        <Button text="Добавить канал" type="primary" onClick={() => navigate("/channels/new")} />
+        <Button text="Кошелек" type="secondary" onClick={() => navigate("/wallet")} />
+      </div>
 
       {loading && (
         <Group>
@@ -136,7 +143,7 @@ export function ChannelsPage() {
         <EmptyState
           icon="📺"
           title="Нет каналов"
-          description="Добавьте канал через бота"
+          description="Добавьте канал через miniapp"
         />
       )}
 
