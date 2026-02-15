@@ -29,20 +29,20 @@ export function ListingsPage() {
     return apiFetch<Listing[]>(`/listings${qs ? `?${qs}` : ""}`);
   }, [priceMin, priceMax]);
 
-  const { data: listings, loading, refetch } = useApi(fetcher, [priceMin, priceMax]);
+  const { data: listings, loading, error, refetch } = useApi(fetcher, [priceMin, priceMax]);
 
   return (
     <div className="flex flex-col gap-4">
       <Text type="title2" weight="bold">
-        Каталог размещений
+        Listings Catalog
       </Text>
-      <Button text="Создать листинг" type="primary" onClick={() => navigate("/listings/new")} />
+      <Button text="Create Listing" type="primary" onClick={() => navigate("/listings/new")} />
 
-      <Group header="Фильтры">
+      <Group header="Filters">
         <div className="flex gap-2 px-4 py-2">
           <div className="min-w-0 flex-1">
             <Input
-              placeholder="Цена от"
+              placeholder="Price from"
               type="text"
               numeric
               value={priceMin}
@@ -51,7 +51,7 @@ export function ListingsPage() {
           </div>
           <div className="min-w-0 flex-1">
             <Input
-              placeholder="Цена до"
+              placeholder="Price to"
               type="text"
               numeric
               value={priceMax}
@@ -60,7 +60,7 @@ export function ListingsPage() {
           </div>
         </div>
         <div className="px-4 pb-3">
-          <Button text="Применить" type="secondary" onClick={refetch} />
+          <Button text="Apply" type="secondary" onClick={refetch} />
         </div>
       </Group>
 
@@ -76,21 +76,29 @@ export function ListingsPage() {
         </Group>
       )}
 
-      {!loading && (!listings || listings.length === 0) && (
+      {!loading && error && (
+        <EmptyState
+          icon="⚠️"
+          title="Loading error"
+          description={error}
+        />
+      )}
+
+      {!loading && !error && (!listings || listings.length === 0) && (
         <EmptyState
           icon="📋"
-          title="Нет размещений"
-          description="Попробуйте изменить фильтры"
+          title="No listings"
+          description="Try adjusting the filters"
         />
       )}
 
       {!loading && listings && listings.length > 0 && (
-        <Group header="Размещения">
+        <Group header="Listings">
           {listings.map((item) => (
             <GroupItem
               key={item.id}
-              text={`Канал #${item.channel_id}`}
-              description={`${item.price_usd != null ? `$${item.price_usd}` : "Цена не указана"} · ${item.format}`}
+              text={`Channel #${item.channel_id}`}
+              description={`${item.price_usd != null ? `$${item.price_usd}` : "Price not specified"} · ${item.format}`}
               onClick={() => navigate(`/listings/${item.id}`)}
               chevron
             />
