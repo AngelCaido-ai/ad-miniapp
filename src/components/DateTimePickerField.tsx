@@ -120,13 +120,6 @@ export function DateTimePickerField({ value, onChange, allowEmpty = true }: Date
           </button>
         )}
       </div>
-      {selectedLabel && (
-        <Text type="caption1" color="secondary">
-          <span style={{ color: "var(--tg-theme-link-color, #4ade80)" }}>
-            Selected: {selectedLabel}
-          </span>
-        </Text>
-      )}
     </div>
   );
 }

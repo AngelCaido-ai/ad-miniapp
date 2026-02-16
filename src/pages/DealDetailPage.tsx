@@ -427,8 +427,6 @@ export function DealDetailPage() {
     });
   };
 
-  const hasActions = canEditTerms || canSetPublishAt || canCreateCreative || canReviewCreative || canSendBrief || canViewCreative;
-
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
@@ -530,14 +528,6 @@ export function DealDetailPage() {
           </div>
         </Group>
       )}
-
-      {/* Actions */}
-      {hasActions && (
-        <Text type="title3" weight="bold">
-          Actions
-        </Text>
-      )}
-
       {/* Waiting hint */}
       {waitingHint && (
         <div
@@ -553,75 +543,6 @@ export function DealDetailPage() {
         </div>
       )}
 
-      {/* Visual Stepper */}
-      {wizardSteps.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center px-2">
-            {wizardSteps.map((step, index) => {
-              const isActive = index === safeWizardStep;
-              return (
-                <div key={step.key} className="flex flex-1 items-center">
-                  <button
-                    type="button"
-                    className="flex flex-col items-center gap-1"
-                    onClick={() => setWizardStep(index)}
-                  >
-                    <div
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors"
-                      style={{
-                        backgroundColor: isActive
-                          ? "var(--tg-theme-button-color, #3b82f6)"
-                          : "var(--tg-theme-secondary-bg-color, #2c2c2e)",
-                        color: isActive
-                          ? "var(--tg-theme-button-text-color, #fff)"
-                          : "var(--tg-theme-hint-color, #999)",
-                      }}
-                    >
-                      {index + 1}
-                    </div>
-                    <Text
-                      type="caption1"
-                      color={isActive ? undefined : "secondary"}
-                      weight={isActive ? "medium" : undefined}
-                    >
-                      {step.title}
-                    </Text>
-                  </button>
-                  {index < wizardSteps.length - 1 && (
-                    <div
-                      className="mx-1 h-px flex-1"
-                      style={{
-                        backgroundColor: "var(--tg-theme-hint-color, #ccc)",
-                        opacity: 0.3,
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex justify-center gap-2">
-            <button
-              type="button"
-              className="px-3 py-1 text-xs rounded-lg"
-              style={{ color: safeWizardStep <= 0 ? "var(--tg-theme-hint-color, #666)" : "var(--tg-theme-link-color, #3b82f6)" }}
-              disabled={safeWizardStep <= 0}
-              onClick={() => setWizardStep((prev) => Math.max(prev - 1, 0))}
-            >
-              &larr; Back
-            </button>
-            <button
-              type="button"
-              className="px-3 py-1 text-xs rounded-lg"
-              style={{ color: safeWizardStep >= wizardSteps.length - 1 ? "var(--tg-theme-hint-color, #666)" : "var(--tg-theme-link-color, #3b82f6)" }}
-              disabled={safeWizardStep >= wizardSteps.length - 1}
-              onClick={() => setWizardStep((prev) => Math.min(prev + 1, wizardSteps.length - 1))}
-            >
-              Next &rarr;
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Deal Terms */}
       {canEditTerms && isStepVisible("terms") && (
