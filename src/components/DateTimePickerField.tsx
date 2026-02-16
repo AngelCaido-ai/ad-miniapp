@@ -70,7 +70,7 @@ export function DateTimePickerField({ value, onChange, allowEmpty = true }: Date
     <div className="flex flex-col gap-2">
       <input
         type="datetime-local"
-        className="w-full rounded-xl border border-[var(--tg-theme-hint-color,#ccc)] bg-transparent px-3 py-2 text-sm"
+        className="w-full text-sm"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
