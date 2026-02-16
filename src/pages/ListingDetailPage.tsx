@@ -20,14 +20,7 @@ function formatNumber(value: number | null | undefined): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function formatMaybeJson(value: unknown): string {
-  if (value == null) return "—";
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return "—";
-  }
-}
+
 
 export function ListingDetailPage() {
   useBackButton();
@@ -204,11 +197,27 @@ export function ListingDetailPage() {
       </Group>
 
       <Group header="Constraints">
-        <div className="px-4 py-3">
-          <Text type="body" color="secondary">
-            {formatMaybeJson(listing.constraints)}
-          </Text>
-        </div>
+        <GroupItem
+          text="Language"
+          after={
+            <Text type="body">
+              {(listing.constraints as Record<string, unknown> | null)?.lang
+                ? String((listing.constraints as Record<string, unknown>).lang).toUpperCase()
+                : "—"}
+            </Text>
+          }
+        />
+        <GroupItem
+          text="Geo"
+          after={
+            <Text type="body">
+              {Array.isArray((listing.constraints as Record<string, unknown> | null)?.geo) &&
+              ((listing.constraints as Record<string, unknown>).geo as string[]).length > 0
+                ? ((listing.constraints as Record<string, unknown>).geo as string[]).join(", ")
+                : "—"}
+            </Text>
+          }
+        />
       </Group>
 
       <Group header="Response">
