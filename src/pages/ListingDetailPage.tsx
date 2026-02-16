@@ -9,7 +9,7 @@ import {
   Text,
   useToast,
 } from "@telegram-tools/ui-kit";
-import { apiFetch, uploadMedia } from "../api/client";
+import { ApiError, apiFetch, uploadMedia } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { useBackButton } from "../hooks/useBackButton";
 import type { ListingDetail, MediaFileId } from "../types";
@@ -99,6 +99,18 @@ export function ListingDetailPage() {
       showToast("Deal created", { type: "success" });
       navigate(`/deals/${deal.id}`);
     } catch (e) {
+      if (
+        e instanceof ApiError &&
+        e.status === 409 &&
+        e.detail &&
+        typeof e.detail === "object" &&
+        "deal_id" in e.detail
+      ) {
+        const dealId = (e.detail as { deal_id: number }).deal_id;
+        showToast("Deal already exists — opening it", { type: "info" });
+        navigate(`/deals/${dealId}`);
+        return;
+      }
       showToast(e instanceof Error ? e.message : "Error", { type: "error" });
     }
   };
