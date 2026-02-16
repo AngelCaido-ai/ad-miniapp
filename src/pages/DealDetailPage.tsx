@@ -195,7 +195,7 @@ export function DealDetailPage() {
   }
 
   const cta = getCta(deal.status as DealStatus);
-  const isAdvertiser = user?.id === deal.advertiser_id;
+  const isAdvertiser = user?.id != null && Number(user.id) === Number(deal.advertiser_id);
   const role: "owner" | "advertiser" = isAdvertiser ? "advertiser" : "owner";
   const status = deal.status as DealStatus;
   const canEditTerms = role === "owner" && (status === "NEGOTIATING" || status === "TERMS_LOCKED");
@@ -447,6 +447,13 @@ export function DealDetailPage() {
           Deal #{deal.id}
         </Text>
         <DealStatusBadge status={deal.status as DealStatus} />
+      </div>
+
+      {/* Debug — remove later */}
+      <div className="rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: "var(--tg-theme-secondary-bg-color, #2c2c2e)" }}>
+        <Text type="caption2" color="secondary">
+          user.id={user?.id ?? "null"} ({typeof user?.id}) | advertiser_id={deal.advertiser_id} ({typeof deal.advertiser_id}) | role={role}
+        </Text>
       </div>
 
       {/* Channel */}

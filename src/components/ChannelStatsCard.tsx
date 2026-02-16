@@ -3,7 +3,10 @@ import type { ChannelStats } from "../types";
 
 function formatNumber(value: number | null | undefined): string {
   if (value == null) return "—";
-  return new Intl.NumberFormat("en-US").format(value);
+  if (Number.isInteger(value) || value >= 100) {
+    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+  }
+  return new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
 }
 
 function TrendIndicator({
@@ -34,9 +37,15 @@ function TrendIndicator({
   );
 }
 
+function isRawStatsGraph(languages: Record<string, unknown>): boolean {
+  return "_" in languages && typeof languages["_"] === "string";
+}
+
 function LanguageChips({ languages }: { languages: Record<string, unknown> }) {
+  if (isRawStatsGraph(languages)) return <Text type="body">—</Text>;
+
   const entries = Object.entries(languages)
-    .filter(([, v]) => typeof v === "number" || typeof v === "string")
+    .filter(([, v]) => typeof v === "number")
     .sort((a, b) => Number(b[1]) - Number(a[1]))
     .slice(0, 6);
 
