@@ -78,6 +78,13 @@ export type DealChannelBrief = {
   title: string | null;
   subscribers: number | null;
   views_per_post: number | null;
+  shares_per_post: number | null;
+  reactions_per_post: number | null;
+  enabled_notifications: number | null;
+  subscribers_prev: number | null;
+  views_per_post_prev: number | null;
+  shares_per_post_prev: number | null;
+  reactions_per_post_prev: number | null;
 };
 
 export type DealAdvertiserBrief = {
@@ -107,6 +114,15 @@ export type ChannelStats = {
   channel_id: number;
   subscribers: number | null;
   views_per_post: number | null;
+  shares_per_post: number | null;
+  reactions_per_post: number | null;
+  enabled_notifications: number | null;
+
+  subscribers_prev: number | null;
+  views_per_post_prev: number | null;
+  shares_per_post_prev: number | null;
+  reactions_per_post_prev: number | null;
+
   languages_json: Record<string, unknown> | null;
   premium_json: Record<string, unknown> | null;
   updated_at: string | null;

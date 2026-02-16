@@ -18,8 +18,9 @@ import { DealEventTimeline } from "../components/DealEventTimeline";
 import { CollapsibleGroup } from "../components/CollapsibleGroup";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { FileUploadButton } from "../components/FileUploadButton";
-import type { DealDetail, DealStatus, MediaFileId } from "../types";
+import type { ChannelStats, DealDetail, DealStatus, MediaFileId } from "../types";
 import { useAuth } from "../contexts/AuthContext";
+import { ChannelStatsCard } from "../components/ChannelStatsCard";
 import { DateTimePickerField, localInputToIso, isoToLocalInput } from "../components/DateTimePickerField";
 
 const BOT_URL = import.meta.env.VITE_BOT_URL || "https://t.me/build_contest_ads_bot";
@@ -437,28 +438,37 @@ export function DealDetailPage() {
         <DealStatusBadge status={deal.status as DealStatus} />
       </div>
 
-      {/* Channel (compact) */}
+      {/* Channel */}
       <Group header="Channel">
         <GroupItem
-          text="Channel"
-          after={<Text type="body">{channelTitle}</Text>}
-          description={
-            <div className="flex flex-col gap-0.5">
-              {channelUsername && (
-                <Text type="caption1" color="secondary">
-                  @{channelUsername}
-                </Text>
-              )}
-              <Text type="caption1" color="secondary">
-                Subscribers: {formatInt(deal.channel_info?.subscribers)} · Views/post:{" "}
-                {formatInt(deal.channel_info?.views_per_post)}
-              </Text>
-            </div>
-          }
+          text={channelTitle}
+          description={channelUsername ? `@${channelUsername}` : undefined}
           onClick={channelUsername ? handleOpenChannel : undefined}
           chevron={Boolean(channelUsername)}
         />
       </Group>
+
+      {deal.channel_info && (
+        <ChannelStatsCard
+          stats={{
+            id: 0,
+            channel_id: deal.channel_info.id,
+            subscribers: deal.channel_info.subscribers,
+            views_per_post: deal.channel_info.views_per_post,
+            shares_per_post: deal.channel_info.shares_per_post,
+            reactions_per_post: deal.channel_info.reactions_per_post,
+            enabled_notifications: deal.channel_info.enabled_notifications,
+            subscribers_prev: deal.channel_info.subscribers_prev,
+            views_per_post_prev: deal.channel_info.views_per_post_prev,
+            shares_per_post_prev: deal.channel_info.shares_per_post_prev,
+            reactions_per_post_prev: deal.channel_info.reactions_per_post_prev,
+            languages_json: null,
+            premium_json: null,
+            updated_at: null,
+            source: null,
+          } satisfies ChannelStats}
+        />
+      )}
 
       {/* Key Details */}
       <Group header="Details">

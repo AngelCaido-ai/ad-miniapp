@@ -13,6 +13,7 @@ import {
 import { ApiError, apiFetch } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { useBackButton } from "../hooks/useBackButton";
+import { ChannelStatsCard } from "../components/ChannelStatsCard";
 import type { Channel, RequestItem } from "../types";
 import { DateTimePickerField, localInputToIso } from "../components/DateTimePickerField";
 
@@ -191,15 +192,12 @@ export function RequestDetailPage() {
           />
         </div>
         <GroupItem
-          text="Stats"
-          description={
-            stats
-              ? `${formatNumber(stats.subscribers)} subscribers · ${formatNumber(stats.views_per_post)} views`
-              : "Stats not loaded"
-          }
-          after={<Button text="Refresh" type="secondary" onClick={refreshStats} />}
+          text=""
+          after={<Button text="Refresh Stats" type="secondary" onClick={refreshStats} />}
         />
       </Group>
+
+      <ChannelStatsCard stats={stats} />
 
       <Group header="Request Terms">
         <GroupItem

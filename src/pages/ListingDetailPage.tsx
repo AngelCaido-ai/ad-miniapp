@@ -12,13 +12,9 @@ import {
 import { ApiError, apiFetch, uploadMedia } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { useBackButton } from "../hooks/useBackButton";
+import { ChannelStatsCard } from "../components/ChannelStatsCard";
 import type { ListingDetail, MediaFileId } from "../types";
 import { DateTimePickerField, localInputToIso } from "../components/DateTimePickerField";
-
-function formatNumber(value: number | null | undefined): string {
-  if (value == null) return "—";
-  return new Intl.NumberFormat("en-US").format(value);
-}
 
 
 
@@ -161,20 +157,7 @@ export function ListingDetailPage() {
         />
       </Group>
 
-      <Group header="Stats">
-        <GroupItem
-          text="Subscribers"
-          after={<Text type="body">{formatNumber(stats?.subscribers ?? null)}</Text>}
-        />
-        <GroupItem
-          text="Views per post"
-          after={<Text type="body">{formatNumber(stats?.views_per_post ?? null)}</Text>}
-        />
-        <GroupItem
-          text="Source"
-          after={<Text type="body">{stats?.source ?? "—"}</Text>}
-        />
-      </Group>
+      <ChannelStatsCard stats={stats} />
 
       <Group header="Terms">
         <GroupItem
