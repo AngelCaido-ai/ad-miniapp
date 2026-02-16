@@ -23,7 +23,6 @@ export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [dealPrice, setDealPrice] = useState("");
   const [dealFormat, setDealFormat] = useState("post");
   const [publishAt, setPublishAt] = useState("");
   const [verificationWindow, setVerificationWindow] = useState("");
@@ -41,22 +40,20 @@ export function ListingDetailPage() {
 
   useEffect(() => {
     if (!listing) return;
-    if (listing.price_usd != null) setDealPrice(String(listing.price_usd));
     if (listing.format) setDealFormat(listing.format);
   }, [listing]);
 
   const respond = async () => {
     if (!listing) return;
     try {
-      const parsedPrice = dealPrice.trim() ? Number(dealPrice) : null;
       const parsedWindow = verificationWindow.trim() ? Number(verificationWindow) : null;
       const publishAtIso = localInputToIso(publishAt);
       if (publishAt.trim() && !publishAtIso) {
         showToast("Invalid publish date", { type: "error" });
         return;
       }
-      if ((dealPrice.trim() && Number.isNaN(parsedPrice)) || (verificationWindow.trim() && Number.isNaN(parsedWindow))) {
-        showToast("Price and verification window must be numbers", { type: "error" });
+      if (verificationWindow.trim() && Number.isNaN(parsedWindow)) {
+        showToast("Verification window must be a number", { type: "error" });
         return;
       }
       const deal = await apiFetch<{ id: number }>("/deals", {
@@ -64,7 +61,7 @@ export function ListingDetailPage() {
         body: JSON.stringify({
           listing_id: listing.id,
           channel_id: listing.channel_id,
-          price: parsedPrice ?? listing.price_usd ?? null,
+          price: listing.price_usd ?? null,
           format: dealFormat.trim() || listing.format,
           brief: brief.trim() || null,
           publish_at: publishAtIso,
@@ -205,13 +202,6 @@ export function ListingDetailPage() {
 
       <Group header="Response">
         <div className="flex flex-col gap-3 px-4 py-3">
-          <Input
-            placeholder="Your price (optional)"
-            type="text"
-            value={dealPrice}
-            onChange={(v) => setDealPrice(v)}
-            numeric
-          />
           <Input
             placeholder="Format"
             type="text"

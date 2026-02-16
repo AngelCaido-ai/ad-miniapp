@@ -164,7 +164,6 @@ export function DealDetailPage() {
   const [briefUploading, setBriefUploading] = useState(false);
   const [creativeData, setCreativeData] = useState<CreativePayload | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [wizardStep, setWizardStep] = useState(0);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   const fetcher = useCallback(() => apiFetch<DealDetail>(`/deals/${id}`), [id]);
@@ -207,17 +206,7 @@ export function DealDetailPage() {
   const canReviewCreative = role === "advertiser" && status === "CREATIVE_REVIEW";
   const canSendBrief = role === "advertiser" && !["RELEASED", "REFUNDED", "CANCELED"].includes(status);
   const canViewCreative = CREATIVE_VIEW_STATUSES.has(status);
-  const wizardSteps = [
-    ...(canEditTerms ? [{ key: "terms", title: "Terms" }] : []),
-    ...(canSetPublishAt ? [{ key: "workflow", title: "Date" }] : []),
-    ...(canCreateCreative ? [{ key: "creative", title: "Creative" }] : []),
-    ...(canReviewCreative ? [{ key: "review", title: "Review" }] : []),
-    ...(canSendBrief ? [{ key: "brief", title: "Brief" }] : []),
-    ...(canViewCreative ? [{ key: "view", title: "View" }] : []),
-  ];
-  const safeWizardStep = wizardSteps.length > 0 ? Math.min(wizardStep, wizardSteps.length - 1) : 0;
-  const activeWizardStep = wizardSteps[safeWizardStep]?.key ?? null;
-  const isStepVisible = (key: string) => wizardSteps.length === 0 || activeWizardStep === key;
+  const canSchedule = role === "owner" && status === "APPROVED";
   const waitingHint = getWaitingHint(status, role);
   const creativeStatusOptions = [
     { value: "APPROVED", label: "Approve" },
@@ -421,6 +410,28 @@ export function DealDetailPage() {
     }
   };
 
+  const submitSchedule = async () => {
+    await withSubmitting(async () => {
+      await apiFetch(`/deals/${deal.id}/status`, {
+        method: "POST",
+        body: JSON.stringify({ status: "SCHEDULED" }),
+      });
+      showToast("Post scheduled", { type: "success" });
+    });
+  };
+
+  const handleSchedule = () => {
+    setConfirmAction({
+      title: "Schedule the post?",
+      description: "The post will be published at the planned date. Make sure the publish date is set.",
+      confirmLabel: "Schedule",
+      onConfirm: () => {
+        setConfirmAction(null);
+        submitSchedule();
+      },
+    });
+  };
+
   const loadCreative = async () => {
     await withSubmitting(async () => {
       const result = await apiFetch<CreativePayload>(`/deals/${deal.id}/creative`);
@@ -555,173 +566,197 @@ export function DealDetailPage() {
 
 
       {/* Deal Terms */}
-      {canEditTerms && isStepVisible("terms") && (
-        <Group header="Deal Terms">
-          <div className="flex flex-col gap-3 px-4 py-3">
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Price, $</Text>
-              <Input
-                placeholder="0.00"
-                type="text"
-                value={termsPrice}
-                onChange={(v) => setTermsPrice(v)}
-                numeric
-              />
+      {canEditTerms && (
+        <Group>
+          <CollapsibleGroup header="Deal Terms" defaultOpen>
+            <div className="flex flex-col gap-3 px-4 py-3">
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Price, $</Text>
+                <Input
+                  placeholder="0.00"
+                  type="text"
+                  value={termsPrice}
+                  onChange={(v) => setTermsPrice(v)}
+                  numeric
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Format</Text>
+                <Input
+                  placeholder="post, repost, story..."
+                  type="text"
+                  value={termsFormat}
+                  onChange={(v) => setTermsFormat(v)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Publish date</Text>
+                <DateTimePickerField value={termsPublishAt} onChange={setTermsPublishAt} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Verification window, min</Text>
+                <Input
+                  placeholder="10"
+                  type="number"
+                  value={termsWindow}
+                  onChange={(v) => setTermsWindow(v.replace(/[^0-9]/g, ""))}
+                  numeric
+                />
+              </div>
+              <Button text="Lock Terms" type="primary" loading={submitting} onClick={handleLockTerms} />
             </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Format</Text>
-              <Input
-                placeholder="post, repost, story..."
-                type="text"
-                value={termsFormat}
-                onChange={(v) => setTermsFormat(v)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Publish date</Text>
-              <DateTimePickerField value={termsPublishAt} onChange={setTermsPublishAt} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Verification window, min</Text>
-              <Input
-                placeholder="10"
-                type="number"
-                value={termsWindow}
-                onChange={(v) => setTermsWindow(v.replace(/[^0-9]/g, ""))}
-                numeric
-              />
-            </div>
-            <Button text="Lock Terms" type="primary" loading={submitting} onClick={handleLockTerms} />
-          </div>
+          </CollapsibleGroup>
         </Group>
       )}
 
       {/* Publish Date */}
-      {canSetPublishAt && isStepVisible("workflow") && (
-        <Group header="Publish Date">
-          <div className="flex flex-col gap-3 px-4 py-3">
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Publish date</Text>
-              <DateTimePickerField value={publishAtValue} onChange={setPublishAtValue} allowEmpty={false} />
+      {canSetPublishAt && (
+        <Group>
+          <CollapsibleGroup header="Publish Date">
+            <div className="flex flex-col gap-3 px-4 py-3">
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Publish date</Text>
+                <DateTimePickerField value={publishAtValue} onChange={setPublishAtValue} allowEmpty={false} />
+              </div>
+              <Button text="Update Date" type="secondary" loading={submitting} onClick={submitPublishAt} />
             </div>
-            <Button text="Update Date" type="secondary" loading={submitting} onClick={submitPublishAt} />
-          </div>
+          </CollapsibleGroup>
         </Group>
       )}
 
       {/* Creative */}
-      {canCreateCreative && isStepVisible("creative") && (
-        <Group header="Creative">
-          <div className="flex flex-col gap-3 px-4 py-3">
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Creative text</Text>
-              <textarea
-                className="w-full text-sm"
-                rows={4}
-                placeholder="Enter the creative text for the post..."
-                value={creativeText}
-                onChange={(e) => setCreativeText(e.target.value)}
-              />
+      {canCreateCreative && (
+        <Group>
+          <CollapsibleGroup header="Creative" defaultOpen>
+            <div className="flex flex-col gap-3 px-4 py-3">
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Creative text</Text>
+                <textarea
+                  className="w-full text-sm"
+                  rows={4}
+                  placeholder="Enter the creative text for the post..."
+                  value={creativeText}
+                  onChange={(e) => setCreativeText(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Media files</Text>
+                <FileUploadButton
+                  files={creativeMedia}
+                  onChange={setCreativeMedia}
+                  onUpload={handleCreativeFile}
+                  uploading={creativeUploading}
+                />
+              </div>
+              <Button text="Submit Creative" type="primary" loading={submitting} onClick={submitCreative} />
             </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Media files</Text>
-              <FileUploadButton
-                files={creativeMedia}
-                onChange={setCreativeMedia}
-                onUpload={handleCreativeFile}
-                uploading={creativeUploading}
-              />
-            </div>
-            <Button text="Submit Creative" type="primary" loading={submitting} onClick={submitCreative} />
-          </div>
+          </CollapsibleGroup>
         </Group>
       )}
 
       {/* Creative Review */}
-      {canReviewCreative && isStepVisible("review") && (
-        <Group header="Creative Review">
-          <div className="flex flex-col gap-3 px-4 py-3">
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Decision</Text>
-              <Select options={creativeStatusOptions} value={creativeStatus} onChange={(v) => setCreativeStatus(v)} />
+      {canReviewCreative && (
+        <Group>
+          <CollapsibleGroup header="Creative Review" defaultOpen>
+            <div className="flex flex-col gap-3 px-4 py-3">
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Decision</Text>
+                <Select options={creativeStatusOptions} value={creativeStatus} onChange={(v) => setCreativeStatus(v)} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Comment</Text>
+                <textarea
+                  className="w-full text-sm"
+                  rows={3}
+                  placeholder="Revision notes or feedback..."
+                  value={creativeComment}
+                  onChange={(e) => setCreativeComment(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Publish date</Text>
+                <DateTimePickerField value={creativePublishAt} onChange={setCreativePublishAt} />
+              </div>
+              <Button text="Submit Review" type="primary" loading={submitting} onClick={submitCreativeReview} />
             </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Comment</Text>
-              <textarea
-                className="w-full text-sm"
-                rows={3}
-                placeholder="Revision notes or feedback..."
-                value={creativeComment}
-                onChange={(e) => setCreativeComment(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Publish date</Text>
-              <DateTimePickerField value={creativePublishAt} onChange={setCreativePublishAt} />
-            </div>
-            <Button text="Submit Review" type="primary" loading={submitting} onClick={submitCreativeReview} />
-          </div>
+          </CollapsibleGroup>
         </Group>
       )}
 
       {/* Advertiser Brief */}
-      {canSendBrief && isStepVisible("brief") && (
-        <Group header="Advertiser Brief">
-          <div className="flex flex-col gap-3 px-4 py-3">
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Brief</Text>
-              <textarea
-                className="w-full text-sm"
-                rows={4}
-                placeholder="Product, CTA, constraints..."
-                value={briefText}
-                onChange={(e) => setBriefText(e.target.value)}
-              />
+      {canSendBrief && (
+        <Group>
+          <CollapsibleGroup header="Advertiser Brief">
+            <div className="flex flex-col gap-3 px-4 py-3">
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Brief</Text>
+                <textarea
+                  className="w-full text-sm"
+                  rows={4}
+                  placeholder="Product, CTA, constraints..."
+                  value={briefText}
+                  onChange={(e) => setBriefText(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Preferred publish date</Text>
+                <DateTimePickerField value={briefPublishAt} onChange={setBriefPublishAt} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Text type="caption1" color="secondary">Attachments</Text>
+                <FileUploadButton
+                  files={briefMedia}
+                  onChange={setBriefMedia}
+                  onUpload={handleBriefFile}
+                  uploading={briefUploading}
+                />
+              </div>
+              <Button text="Submit Brief" type="secondary" loading={submitting} onClick={submitBrief} />
             </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Preferred publish date</Text>
-              <DateTimePickerField value={briefPublishAt} onChange={setBriefPublishAt} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Text type="caption1" color="secondary">Attachments</Text>
-              <FileUploadButton
-                files={briefMedia}
-                onChange={setBriefMedia}
-                onUpload={handleBriefFile}
-                uploading={briefUploading}
-              />
-            </div>
-            <Button text="Submit Brief" type="secondary" loading={submitting} onClick={submitBrief} />
-          </div>
+          </CollapsibleGroup>
         </Group>
       )}
 
       {/* View Creative */}
-      {canViewCreative && isStepVisible("view") && (
-        <Group header="View Creative">
-          <div className="flex flex-col gap-3 px-4 py-3">
-            <Button text="Show Latest Creative" type="secondary" loading={submitting} onClick={loadCreative} />
-            {creativeData && (
-              <div className="flex flex-col gap-2 rounded-xl border border-[var(--tg-theme-hint-color,#ccc)] p-3">
-                <Text type="body">Version: {creativeData.version}</Text>
-                <Text type="body">Status: {creativeData.status}</Text>
-                <Text type="body" color="secondary">
-                  {creativeData.text || "No text"}
-                </Text>
-                {creativeData.media_file_ids && creativeData.media_file_ids.length > 0 && (
-                  <Text type="caption1" color="secondary">
-                    {creativeData.media_file_ids.length} media file(s) attached
+      {canViewCreative && (
+        <Group>
+          <CollapsibleGroup header="View Creative">
+            <div className="flex flex-col gap-3 px-4 py-3">
+              <Button text="Show Latest Creative" type="secondary" loading={submitting} onClick={loadCreative} />
+              {creativeData && (
+                <div className="flex flex-col gap-2 rounded-xl border border-[var(--tg-theme-hint-color,#ccc)] p-3">
+                  <Text type="body">Version: {creativeData.version}</Text>
+                  <Text type="body">Status: {creativeData.status}</Text>
+                  <Text type="body" color="secondary">
+                    {creativeData.text || "No text"}
                   </Text>
-                )}
-              </div>
-            )}
+                  {creativeData.media_file_ids && creativeData.media_file_ids.length > 0 && (
+                    <Text type="caption1" color="secondary">
+                      {creativeData.media_file_ids.length} media file(s) attached
+                    </Text>
+                  )}
+                </div>
+              )}
+            </div>
+          </CollapsibleGroup>
+        </Group>
+      )}
+
+      {/* Schedule Post */}
+      {canSchedule && (
+        <Group>
+          <div className="flex flex-col gap-2 px-4 py-3">
+            <Text type="body" color="secondary">
+              Creative is approved. Schedule the post for publication.
+            </Text>
+            <Button text="Schedule Post" type="primary" loading={submitting} onClick={handleSchedule} />
           </div>
         </Group>
       )}
 
       {/* CTA (right after forms) */}
       <div className="flex flex-col gap-2 pt-2">
-        {cta.action && (
+        {cta.action && (cta.action !== "pay" || isAdvertiser) && (
           <Button text={cta.label} type="primary" onClick={handleCta} />
         )}
         <button

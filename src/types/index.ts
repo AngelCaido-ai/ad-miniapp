@@ -165,6 +165,8 @@ export type EscrowPayment = {
   deposit_comment: string | null;
   deposit_key: string | null;
   expected_amount: number | null;
+  deal_price: number | null;
+  network_fee: number | null;
   tx_hash: string | null;
   confirmed_at: string | null;
   release_tx_hash: string | null;
