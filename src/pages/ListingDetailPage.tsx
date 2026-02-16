@@ -61,7 +61,6 @@ export function ListingDetailPage() {
         body: JSON.stringify({
           listing_id: listing.id,
           channel_id: listing.channel_id,
-          price: listing.price_usd ?? null,
           format: dealFormat.trim() || listing.format,
           brief: brief.trim() || null,
           publish_at: publishAtIso,

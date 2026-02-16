@@ -195,18 +195,21 @@ export function DealDetailPage() {
   }
 
   const cta = getCta(deal.status as DealStatus);
-  const isAdvertiser = user?.id != null && Number(user.id) === Number(deal.advertiser_id);
+  const userLoaded = user?.id != null;
+  const isAdvertiser = userLoaded && Number(user.id) === Number(deal.advertiser_id);
   const role: "owner" | "advertiser" = isAdvertiser ? "advertiser" : "owner";
   const status = deal.status as DealStatus;
-  const canEditTerms = role === "owner" && (status === "NEGOTIATING" || status === "TERMS_LOCKED");
+  const canEditTerms = userLoaded && role === "owner" && (status === "NEGOTIATING" || status === "TERMS_LOCKED");
+  const priceLockedByListing = deal.listing_id != null && deal.price != null;
   const canSetPublishAt =
+    userLoaded &&
     role === "owner" &&
     !["NEGOTIATING", "TERMS_LOCKED", "POSTED", "VERIFYING", "RELEASED", "REFUNDED", "CANCELED"].includes(status);
-  const canCreateCreative = role === "owner" && (status === "FUNDED" || status === "CREATIVE_DRAFT");
-  const canReviewCreative = role === "advertiser" && status === "CREATIVE_REVIEW";
-  const canSendBrief = role === "advertiser" && !["RELEASED", "REFUNDED", "CANCELED"].includes(status);
+  const canCreateCreative = userLoaded && role === "owner" && (status === "FUNDED" || status === "CREATIVE_DRAFT");
+  const canReviewCreative = userLoaded && role === "advertiser" && status === "CREATIVE_REVIEW";
+  const canSendBrief = userLoaded && role === "advertiser" && !["RELEASED", "REFUNDED", "CANCELED"].includes(status);
   const canViewCreative = CREATIVE_VIEW_STATUSES.has(status);
-  const canSchedule = role === "owner" && status === "APPROVED";
+  const canSchedule = userLoaded && role === "owner" && status === "APPROVED";
   const waitingHint = getWaitingHint(status, role);
   const creativeStatusOptions = [
     { value: "APPROVED", label: "Approve" },
@@ -268,7 +271,7 @@ export function DealDetailPage() {
   const submitTerms = async () => {
     await withSubmitting(async () => {
       const payload: Record<string, unknown> = {};
-      if (termsPrice.trim()) payload.price = Number(termsPrice);
+      if (!priceLockedByListing && termsPrice.trim()) payload.price = Number(termsPrice);
       if (termsFormat.trim()) payload.format = termsFormat.trim();
       if (termsPublishAt.trim()) {
         const publishAtIso = localInputToIso(termsPublishAt);
@@ -579,13 +582,17 @@ export function DealDetailPage() {
             <div className="flex flex-col gap-3 px-4 py-3">
               <div className="flex flex-col gap-1">
                 <Text type="caption1" color="secondary">Price, $</Text>
-                <Input
-                  placeholder="0.00"
-                  type="text"
-                  value={termsPrice}
-                  onChange={(v) => setTermsPrice(v)}
-                  numeric
-                />
+                {priceLockedByListing ? (
+                  <Text type="body">${deal.price}</Text>
+                ) : (
+                  <Input
+                    placeholder="0.00"
+                    type="text"
+                    value={termsPrice}
+                    onChange={(v) => setTermsPrice(v)}
+                    numeric
+                  />
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <Text type="caption1" color="secondary">Format</Text>
